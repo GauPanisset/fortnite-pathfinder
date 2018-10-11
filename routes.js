@@ -19,7 +19,7 @@ router.post('/create', (req, res, next) => {
 });
 
 router.post('/place', (req, res, next) => {
-  DB.data.query('INSERT INTO position (objet, x, y) VALUES (?, ?, ?)', [req.body.objet, req.body.posx, req.body.posy], (err) => {
+  DB.data.query('INSERT INTO `position` (objet, x, y) VALUE (?, ?, ?)', [req.body.objet, req.body.posx, req.body.posy], (err) => {
     if (err) {
       return next(err);
     }
