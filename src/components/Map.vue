@@ -65,7 +65,7 @@
 
         this.map = L.map('map', {
           dragging: false,
-        }).setView([1, 1], 0);
+        }).setView([1, 1], 2);
 
         //let bounds = L.latLngBounds(L.latLng(0, 0), L.latLng(50, 100));
 
