@@ -135,7 +135,8 @@
       <v-spacer></v-spacer>
     </v-toolbar>
     <v-content>
-      <Map v-on:position="setPosition($event)"></Map>
+      <Map v-on:position="setPosition($event)" :selection="selection"></Map>
+      <div>{{selection}}</div>
     </v-content>
 
     <v-footer :fixed="fixed" app>

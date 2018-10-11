@@ -47,19 +47,37 @@ router.delete('/objet/:id', (req, res, next) => {
 
 router.get('/objet/:id', (req, res, next) => {
   if (req.params.id === 'all') {
-    DB.data.query('SELECT * FROM Objet', [req.params.id], (err, data) => {
+    DB.data.query('SELECT * FROM objet', [req.params.id], (err, data) => {
       if (err) {
         return next(err);
       }
       res.json(data);
     });
   } else {
-    DB.data.query('SELECT * FROM Objet WHERE id = ?', [req.params.id], (err, data) => {
+    DB.data.query('SELECT * FROM objet WHERE id = ?', [req.params.id], (err, data) => {
       if (err) {
         return next(err);
       }
       res.json(data);
     });
+  }
+});
+
+router.get('/marqueur/:id', (req, res, next) => {
+  if (req.params.id === 'all') {
+    DB.data.query('SELECT x, y FROM position', (err, data) => {
+      if (err) {
+        return next(err);
+      }
+      res.json(data);
+    });
+  } else {
+    DB.data.query('SELECT x, y FROM position WHERE objet = ?', [req.params.id], (err, data) => {
+      if (err) {
+        return next(err);
+      }
+      res.json(data);
+    })
   }
 });
 
