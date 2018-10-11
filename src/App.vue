@@ -154,16 +154,7 @@
         clipped: true,
         drawer: true,
         fixed: false,
-        items: [{
-          value: '1',       //id de l'objet en BDD
-          label: 'Wood'     //nom de l'objet en BDD
-        }, {
-          value: '2',
-          label: 'Stone'
-        }, {
-          value: '3',
-          label: 'Steel'
-        }],
+        items: [],
         miniVariant: false,
         right: true,
         rightDrawer: false,
