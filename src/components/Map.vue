@@ -57,12 +57,13 @@
 
         const that = this;
 
-        this.myIcon = L.icon({
+        let myIcon = L.icon({
           iconUrl: require('../assets/images/forest.svg'),
           iconSize: [32, 32],
           iconAnchor: [16, 32],
         });
 
+        this.myIcon = myIcon;
         let map = L.map('map', {
           dragging: false,
         }).setView([1, 1], 2);
@@ -82,7 +83,7 @@
 
         function addMarker(e){
           let newMarker = new L.marker(e.latlng, {
-            icon: this.myIcon,
+            icon: myIcon,
           }).addTo(map);
           let position = map.project(e.latlng, map.getZoom());
           that.sendPosition(position.x, position.y, map.getZoom());
