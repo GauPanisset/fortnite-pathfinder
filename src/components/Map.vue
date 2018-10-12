@@ -63,10 +63,11 @@
           iconAnchor: [16, 32],
         });
 
-        this.map = L.map('map', {
+        let map = L.map('map', {
           dragging: false,
         }).setView([1, 1], 2);
 
+        this.map = map;
         //let bounds = L.latLngBounds(L.latLng(0, 0), L.latLng(50, 100));
 
         L.tileLayer('https://oyster.ignimgs.com/ignmedia/wikimaps/fortnite/season-6/{z}/{x}-{y}.jpg', {
@@ -75,16 +76,16 @@
           attribution: 'fortnite-map',
           tms: false,
           noWrap: true,
-        }).addTo(this.map);
+        }).addTo(map);
 
-        this.map.on('click', addMarker);
+        map.on('click', addMarker);
 
         function addMarker(e){
           let newMarker = new L.marker(e.latlng, {
             icon: this.myIcon,
-          }).addTo(this.map);
-          let position = this.map.project(e.latlng, this.map.getZoom());
-          that.sendPosition(position.x, position.y, this.map.getZoom());
+          }).addTo(map);
+          let position = map.project(e.latlng, map.getZoom());
+          that.sendPosition(position.x, position.y, map.getZoom());
         }
       }
 
