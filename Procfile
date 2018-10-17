@@ -1,1 +1,1 @@
-web: python -m pip3 install mysql-connector ; node server.js
+web: apt-get install pip ; python -m pip install mysql-connector ; node server.js
