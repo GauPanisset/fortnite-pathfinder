@@ -1,2 +1,1 @@
-web: python -m pip install mysql-connector
-web: node server.js
+web: python -m pip install mysql-connector ; node server.js
