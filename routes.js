@@ -83,7 +83,7 @@ router.get('/marqueur/:id', (req, res, next) => {
 });
 
 router.get('/chemin', (req, res, next) => {
-  const py = Spawn('python', ['dijkstra2.py']);
+  const py = Spawn('python', ['venv/dijkstra.py']);
   const debut = req.query.debut;
   const fin = req.query.fin;
   let resultat = '';
