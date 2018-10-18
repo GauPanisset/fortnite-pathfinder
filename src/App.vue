@@ -115,6 +115,18 @@
 
       <v-radio-group v-model="selection" column>
         <v-radio
+          v-for="(item) in specialMarker"
+          :key=item.value
+          :label=item.label
+          color="red"
+          :value=item.value
+        ></v-radio>
+      </v-radio-group>
+
+      <v-divider></v-divider>
+
+      <v-radio-group v-model="selection" column>
+        <v-radio
           v-for="(item) in items"
           :key=item.value
           :label=item.label
@@ -180,6 +192,13 @@
         }, {
           value: 'acier',
           label: 'Acier',
+        }],
+        specialMarker: [{
+          value: 'debut',
+          label: 'Point de départ',
+        }, {
+          value: 'fin',
+          label: "Point d'arriver",
         }]
       }
     },
@@ -189,19 +208,22 @@
     },
     methods: {
       setPosition(e) {
+
         this.position = '(' + e.x + ',' + e.y + ')';
 
-        axios.post('/data/place', {
-          objet: this.selection,
-          posx: e.x,
-          posy: e.y,
-        })
-          .then(response => {
-            console.log(response);
+        if (this.selection !== 'debut' && this.selection !== 'fin') {
+          axios.post('/data/place', {
+            objet: this.selection,
+            posx: e.x,
+            posy: e.y,
           })
-          .catch(err => {
-            console.log(err);
-          })
+            .then(response => {
+              console.log(response);
+            })
+            .catch(err => {
+              console.log(err);
+            })
+        }
       },
       ajouterObjet() {
 

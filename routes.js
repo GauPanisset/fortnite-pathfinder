@@ -1,7 +1,7 @@
 const Express = require('express');
 const router = Express.Router();
 const DB = require('./database.js');
-const Spawn = require('child_process').spawn;
+const PythonShell = require('python-shell');
 
 
 router.post('/create', (req, res, next) => {
@@ -83,37 +83,30 @@ router.get('/marqueur/:id', (req, res, next) => {
 });
 
 router.get('/chemin', (req, res, next) => {
-  const py = Spawn('python', ['venv/dijkstra.py']);
-  const debut = req.query.debut;
-  const fin = req.query.fin;
-  let resultat = '';
-  let positions = '';
+  const debut = JSON.parse(req.query.debut);
+  const fin = JSON.parse(req.query.fin);
 
-  /*DB.data.query('SELECT x, y FROM position', (err, data) => {
+  const pyshell = new PythonShell.PythonShell('dijkstra.py');
+
+  DB.data.query('SELECT x, y FROM position', (err, data) => {
     if (err) {
       return next(err);
     }
-    data.forEach(pos => {
-      positions += pos.x + "," + pos.y + ",";
-    });*/
+    pyshell.send(JSON.stringify([debut, fin, data]));
 
-  py.stdout.on('data', function(data){
-    console.log("data : " + data);
-    resultat += data.toString();
-  });
+    pyshell.on('message', function (message) {
+      res.json(message);
+    });
 
-  py.stdout.on('end', function(){
-    console.log('Result =',resultat);
-    res.json(resultat);
-  });
+    pyshell.end(function (err) {
+      if (err){
+        throw err;
+      }
+      console.log('finished');
+    });
+  })
 
-  py.stderr.on('data', (data) => {
-    // As said before, convert the Uint8Array to a readable string.
-    console.log(String.fromCharCode.apply(null,data));
-  });
 
-  //py.stdin.write(JSON.stringify([debut, fin, positions]));
-  //py.stdin.end();
 });
 
 
