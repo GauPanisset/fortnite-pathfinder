@@ -1,5 +1,6 @@
 from collections import defaultdict, deque
 import sys, json
+from math import sqrt
 
 class Graph(object):
     def __init__(self):
@@ -65,7 +66,7 @@ def shortest_path(graph, origin, destination):
 
 
 def distance(a, b):
-    return (a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2
+    return sqrt((a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2)
 
 def read_in():
     lines = sys.stdin.readlines()
@@ -97,6 +98,7 @@ if __name__ == '__main__':
         dist = distance(node, node2)
         if dist > 0:
           graph.add_edge(node, node2, dist)
+          graph.add_edge(node2, node, dist)
 
     print(nodeToJSON(shortest_path(graph, (debut["x"], debut["y"]), (fin["x"], fin["y"]))))
 

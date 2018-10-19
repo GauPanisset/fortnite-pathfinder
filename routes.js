@@ -95,6 +95,7 @@ router.get('/chemin', (req, res, next) => {
     pyshell.send(JSON.stringify([debut, fin, data]));
 
     pyshell.on('message', function (message) {
+      console.log(message);
       res.json(message);
     });
 
