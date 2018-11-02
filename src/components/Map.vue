@@ -69,8 +69,7 @@
           axios.get('/data/chemin/?debut={"x":'+start.x+',"y":'+start.y+'}&fin={"x":'+end.x+',"y":'+end.y+'}')
             .then(response => {
               let nodes = [];
-              let myData = JSON.parse(response.data.split('\'').join('"'));
-              myData.forEach(marker => {
+              response.data.forEach(marker => {
                 let pos = this.map.unproject(L.point(marker.x, marker.y));
                 nodes.push(pos);
               });

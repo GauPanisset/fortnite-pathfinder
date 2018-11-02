@@ -88,15 +88,18 @@ router.get('/chemin', (req, res, next) => {
 
   const pyshell = new PythonShell.PythonShell('dijkstra.py');
 
-  DB.data.query('SELECT x, y FROM position', (err, data) => {
+  DB.data.query('SELECT position.x AS x, position.y AS y, objet.vie AS vie, objet.moyenne AS moyenne, objet.variance AS variance, objet.matiere AS matiere FROM position INNER JOIN objet ON objet.id=position.objet', (err, data) => {
     if (err) {
       return next(err);
     }
+
     pyshell.send(JSON.stringify([debut, fin, data]));
 
     pyshell.on('message', function (message) {
       console.log(message);
-      res.json(message);
+      data = JSON.parse(message.split('\'').join('"'));
+      console.log(data);
+      res.json(data.path);
     });
 
     pyshell.end(function (err) {

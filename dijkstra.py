@@ -48,7 +48,6 @@ def dijkstra(graph, initial):
 
     return visited, path
 
-
 def shortest_path(graph, origin, destination):
     visited, paths = dijkstra(graph, origin)
     full_path = deque()
@@ -66,7 +65,7 @@ def shortest_path(graph, origin, destination):
 
 
 def distance(a, b):
-    return sqrt((a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2)
+    return 5*sqrt((a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2) - b[3]
 
 def read_in():
     lines = sys.stdin.readlines()
@@ -80,25 +79,31 @@ def nodeToJSON(nodeList):
 
 if __name__ == '__main__':
 
-    [debut, fin, positions] = read_in()
+  [debut, fin, positions] = read_in() #[debut({"x":x,"y":y}), fin({"x":x,"y":y}), positions([{"x":x,"y":y,"vie":vie,"moyenne":moyenne,"variance":variance,"matiere":matiere},...])]
 
-    if not debut in positions:
-      positions.append(debut)
+  debut = {"x":debut["x"],"y":debut["y"],"vie":0,"moyenne":0,"variance":0,"matiere":None}
+  if not debut in positions:
+    positions.append(debut)
 
-    if not fin in positions:
-      positions.append(fin)
+  fin = {"x":fin["x"],"y":fin["y"],"vie":0,"moyenne":0,"variance":0,"matiere":None}
+  if not fin in positions:
+    positions.append(fin)
 
-    graph = Graph()
+  graph = Graph()
 
-    for n in positions:
-      node = (n["x"], n["y"])
-      graph.add_node(node)
-      for n2 in positions:
-        node2 = (n2["x"], n2["y"])
-        dist = distance(node, node2)
-        if dist > 0:
-          graph.add_edge(node, node2, dist)
-          graph.add_edge(node2, node, dist)
+  for n in positions:
+    node = (n["x"], n["y"], n["vie"], n["moyenne"])
+    graph.add_node(node)
+    for n2 in positions:
+      node2 = (n2["x"], n2["y"], n2["vie"], n2["moyenne"])
+      dist1 = distance(node, node2)
+      dist2 = distance(node2, node)
+      if dist1 > 0:
+        graph.add_edge(node, node2, dist1)
+      if dist2 > 0:
+        graph.add_edge(node2, node, dist2)
 
-    print(nodeToJSON(shortest_path(graph, (debut["x"], debut["y"]), (fin["x"], fin["y"]))))
+  v = 2.2
+  t_min = v*sqrt((debut["x"]-fin["x"])^2+(debut["y"]-fin["y"])^2)
+  print({"Temps min (s)": t_min, "path": nodeToJSON(shortest_path(graph, (debut["x"], debut["y"],0,0), (fin["x"], fin["y"],0,0)))})
 
