@@ -105,5 +105,8 @@ if __name__ == '__main__':
 
   v = 2.2
   t_min = v*sqrt((debut["x"]-fin["x"])^2+(debut["y"]-fin["y"])^2)
-  print({"Temps min (s)": t_min, "path": nodeToJSON(shortest_path(graph, (debut["x"], debut["y"],0,0), (fin["x"], fin["y"],0,0)))})
+
+  myPath = shortest_path(graph, (debut["x"], debut["y"],0,0), (fin["x"], fin["y"],0,0))
+  print({"Temps min (s)": t_min, "path": nodeToJSON(myPath)})
+
 
