@@ -116,6 +116,6 @@ if __name__ == '__main__':
   t_min = (1/v)*sqrt((debut["x"]-fin["x"])**2+(debut["y"]-fin["y"])**2)
 
 
-  print({"Temps min (s)": t_min,"Temps réel (s)": t,"Matériaux": m})
+  print({"Temps min (s)": t_min,"Temps réel (s)": t,"Matériaux": m,, "path": nodeToJSON(myPath)})
 
 

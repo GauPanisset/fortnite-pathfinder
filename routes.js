@@ -101,9 +101,12 @@ router.get('/chemin', (req, res, next) => {
     pyshell.send(JSON.stringify([debut, fin, data]));
 
     pyshell.on('message', function (message) {
-      console.log(message);
       data = JSON.parse(message.split('\'').join('"'));
-      console.log(data);
+      for(let key in data) {
+        if (key !== "path") {
+          console.log(key + " : " + data[key] + '\n');
+        }
+      }
       res.json(data.path);
     });
 
