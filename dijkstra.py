@@ -64,8 +64,9 @@ def shortest_path(graph, origin, destination):
     return list(full_path)
 
 
+
 def distance(a, b):
-    return 5*sqrt((a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2) - b[3]
+    return (1/v)*sqrt((a[0]-b[0])**2+(a[1]-b[1])**2)+alpha*50+0.5*alpha*(b[2]-50) - beta*b[3]
 
 def read_in():
     lines = sys.stdin.readlines()
@@ -78,6 +79,11 @@ def nodeToJSON(nodeList):
     return res
 
 if __name__ == '__main__':
+  v = 2.2
+  t=0
+  m=0
+  alpha=0.0133
+  beta=0.16
 
   [debut, fin, positions] = read_in() #[debut({"x":x,"y":y}), fin({"x":x,"y":y}), positions([{"x":x,"y":y,"vie":vie,"moyenne":moyenne,"variance":variance,"matiere":matiere},...])]
 
@@ -103,16 +109,13 @@ if __name__ == '__main__':
       if dist2 > 0:
         graph.add_edge(node2, node, dist2)
   myPath = shortest_path(graph, (debut["x"], debut["y"],0,0), (fin["x"], fin["y"],0,0))
-  v = 2.2
-  t=0
-  m=0
-  alpha=0.0133
+  
   for i in range(len(myPath)-1):
     t=t+(1/v)*sqrt((myPath[i+1][0]-myPath[i][0])**2+(myPath[i+1][1]-myPath[i][1])**2)+alpha*50+0.5*alpha*(myPath[i+1][2]-50)
     m=m+myPath[i+1][3]
   t_min = (1/v)*sqrt((debut["x"]-fin["x"])**2+(debut["y"]-fin["y"])**2)
 
 
-  print({"Temps min (s)": t_min,"Temps réel (s)": t,"Matériaux": m, "path": nodeToJSON(myPath)})
+  print({"Temps min (s)": t_min,"Temps réel (s)": t,"Matériaux": m})
 
 
