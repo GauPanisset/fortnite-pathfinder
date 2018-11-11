@@ -48,7 +48,7 @@ router.delete('/objet/:id', (req, res, next) => {
 
 router.get('/objet/:id', (req, res, next) => {
   if (req.params.id === 'all') {
-    DB.data.query('SELECT * FROM objet', [req.params.id], (err, data) => {
+    DB.data.query('SELECT * FROM objet ORDER BY nom', [req.params.id], (err, data) => {
       if (err) {
         return next(err);
       }
@@ -93,6 +93,9 @@ router.get('/chemin', (req, res, next) => {
     y: (fin.y + debut.y)/2,
     r: (fin.x - debut.x)*(fin.x - debut.x) + (fin.y - debut.y)*(fin.y - debut.y),
   };
+
+  let timer = Date.now();
+
   DB.data.query('SELECT position.x AS x, position.y AS y, objet.vie AS vie, objet.moyenne AS moyenne, objet.variance AS variance, objet.matiere AS matiere FROM position INNER JOIN objet ON objet.id=position.objet WHERE ((position.x - ?)*(position.x - ?) + (position.y - ?)*(position.y - ?)) < ?', [center.x, center.x, center.y, center.y, center.r], (err, data) => {
     if (err) {
       return next(err);
@@ -104,7 +107,7 @@ router.get('/chemin', (req, res, next) => {
       data = JSON.parse(message.split('\'').join('"'));
       for(let key in data) {
         if (key !== "path") {
-          console.log(key + " : " + data[key] + '\n');
+          console.log(key + " : " + JSON.stringify(data[key]) + '\n');
         }
       }
       res.json(data.path);
@@ -114,7 +117,7 @@ router.get('/chemin', (req, res, next) => {
       if (err){
         throw err;
       }
-      console.log('finished');
+      console.log('finished in '+ Math.floor((Date.now() - timer)/1000) + 's.');
     });
   })
 
