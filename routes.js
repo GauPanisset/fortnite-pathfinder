@@ -85,6 +85,7 @@ router.get('/marqueur/:id', (req, res, next) => {
 router.get('/chemin', (req, res, next) => {
   const debut = JSON.parse(req.query.debut);
   const fin = JSON.parse(req.query.fin);
+  const mode = JSON.parse(req.query.mode);
 
   const pyshell = new PythonShell.PythonShell('dijkstra.py');
 
@@ -101,7 +102,7 @@ router.get('/chemin', (req, res, next) => {
       return next(err);
     }
 
-    pyshell.send(JSON.stringify([debut, fin, data]));
+    pyshell.send(JSON.stringify([mode, debut, fin, data]));
 
     pyshell.on('message', function (message) {
       data = JSON.parse(message.split('\'').join('"'));

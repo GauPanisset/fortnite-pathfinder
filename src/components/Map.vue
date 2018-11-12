@@ -2,7 +2,7 @@
   <div id="map-container">
     <div id="map"></div>
     <div class="text-xs-center">
-      <v-btn :disabled="selection === 'fin' || selection === 'debut'" color="green" @click="displayMarker()">Afficher les marqueurs : {{selection}}</v-btn>
+      <v-btn :disabled="selection.selection === 'fin' || selection.selection === 'debut'" color="green" @click="displayMarker()">Afficher les marqueurs : {{selection.selection}}</v-btn>
       <v-btn color="green" @click="hideMarker()">Masquer les marqueurs</v-btn>
       <v-btn color="red" @click="showPath()">Calculer le chemin</v-btn>
     </div>
@@ -36,7 +36,7 @@
           })
         },
         displayMarker() {
-          axios.get('/data/marqueur/' + this.selection)
+          axios.get('/data/marqueur/' + this.selection.selection)
             .then(response => {
               response.data.forEach(marker => {
 
@@ -66,15 +66,20 @@
             y: Math.round(this.map.project(this.endMarker.getLatLng()).y),
           };
 
-          axios.get('/data/chemin/?debut={"x":'+start.x+',"y":'+start.y+'}&fin={"x":'+end.x+',"y":'+end.y+'}')
+          axios.get('/data/chemin/?debut={"x":'+start.x+',"y":'+start.y+'}&fin={"x":'+end.x+',"y":'+end.y+'}&mode="'+this.selection.mode+'"')
             .then(response => {
-              let nodes = [];
-              response.data.forEach(marker => {
-                let pos = this.map.unproject(L.point(marker.x, marker.y));
-                nodes.push(pos);
-              });
-              this.path = L.polyline(nodes);
-              this.path.addTo(this.map);
+              const colors = ["#cc0000", "#8187ff", "#b0d996", "#ffd700"];
+              for (let i = 0 ; i < response.data.length; i++) {
+                let path = response.data[i];
+                console.log(path);
+                let nodes = [];
+                path.forEach(marker => {
+                  let pos = this.map.unproject(L.point(marker.x, marker.y));
+                  nodes.push(pos);
+                });
+                this.path = L.polyline(nodes, {color: colors[i]});
+                this.path.addTo(this.map);
+              };
             })
             .catch(err => {
               console.log(err);
@@ -123,7 +128,7 @@
         map.on('click', addMarker);
 
         function addMarker(e){
-          if (that.selection === 'debut') {
+          if (that.selection.selection === 'debut') {
             if (that.startMarker === null) {
               that.startMarker = new L.marker(e.latlng, {
                 icon: iconDebut,
@@ -133,7 +138,7 @@
             }
             let position = map.project(e.latlng, map.getZoom());
             that.sendPosition(position.x, position.y, map.getZoom());
-          } else if (that.selection === 'fin') {
+          } else if (that.selection.selection === 'fin') {
             if (that.endMarker === null) {
               that.endMarker = new L.marker(e.latlng, {
                 icon: iconFin,

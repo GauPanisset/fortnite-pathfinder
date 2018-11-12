@@ -11,6 +11,9 @@ class Graph(object):
     def add_node(self, value):
       self.nodes.add(value)
 
+    def remove_node(self, value):
+      self.nodes.remove(value)
+
     def add_edge(self, from_node, to_node, distance):
       self.edges[from_node].append(to_node)
       self.edges[to_node].append(from_node)
@@ -48,20 +51,30 @@ def dijkstra(graph, initial):
 
     return visited, path
 
-def shortest_path(graph, origin, destination):
-    visited, paths = dijkstra(graph, origin)
-    full_path = deque()
-    _destination = paths[destination]
+def shortest_path(graph, origin, destination, mode):
+    res = []
+    modes = {"solo": 1, "duo": 2, "squad": 4}
+    for i in range(modes[mode]):
+      visited, paths = dijkstra(graph, origin)
+      full_path = deque()
+      _destination = paths[destination]
 
-    while _destination != origin:
-      full_path.appendleft(_destination)
-      _destination = paths[_destination]
+      while _destination != origin:
+        full_path.appendleft(_destination)
+        _destination = paths[_destination]
 
-    full_path.appendleft(origin)
-    full_path.append(destination)
+      for node in full_path:
+              graph.remove_node(node)
+
+      full_path.appendleft(origin)
+      full_path.append(destination)
+
+      res.append(full_path)
+
+
 
     #return visited[destination], list(full_path)
-    return list(full_path)
+    return list(res)
 
 
 
@@ -90,12 +103,9 @@ def inEllipse(node, a, b, c):       #a et b sont les foyers, c est tel que 2c >=
 
 if __name__ == '__main__':
   v = 2.2
-  t=0
-  m = {
-    "bois": 0,
-    "pierre": 0,
-    "metal": 0,
-  }
+  time = []
+  mats = []
+  resPath = []
   param = {
     "alpha":0.0133,     #Default
     "beta":0.16,
@@ -107,7 +117,7 @@ if __name__ == '__main__':
     "betam":0.16,
   }
 
-  [debut, fin, positions] = read_in() #[debut({"x":x,"y":y}), fin({"x":x,"y":y}), positions([{"x":x,"y":y,"vie":vie,"moyenne":moyenne,"variance":variance,"matiere":matiere},...])]
+  [mode, debut, fin, positions] = read_in() #["solo", debut({"x":x,"y":y}), fin({"x":x,"y":y}), positions([{"x":x,"y":y,"vie":vie,"moyenne":moyenne,"variance":variance,"matiere":matiere},...])]
 
   debut = {"x":debut["x"],"y":debut["y"],"vie":0,"moyenne":0,"variance":0,"matiere":None}
   if not debut in positions:
@@ -134,19 +144,29 @@ if __name__ == '__main__':
         graph.add_edge(node, node2, dist1)
       if dist2 > 0:
         graph.add_edge(node2, node, dist2)
-  myPath = shortest_path(graph, (debut["x"], debut["y"],0,0,None), (fin["x"], fin["y"],0,0,None))
-  
-  for i in range(len(myPath)-1):
-    t=t+(1/v)*sqrt((myPath[i+1][0]-myPath[i][0])**2+(myPath[i+1][1]-myPath[i][1])**2)+param["alpha"]*50+0.5*param["alpha"]*(myPath[i+1][2]-50)
-    if myPath[i + 1][4] == "bois":
-      m["bois"] += myPath[i+1][3]
-    elif myPath[i + 1][4] == "pierre":
-      m["pierre"] += myPath[i+1][3]
-    elif myPath[i + 1][4] == "metal":
-      m["metal"] += myPath[i+1][3]
+  myPath = shortest_path(graph, (debut["x"], debut["y"],0,0,None), (fin["x"], fin["y"],0,0,None), mode)
+
+  for path in myPath:
+    m = {"bois": 0, "pierre": 0, "metal": 0}
+    t = 0
+    for i in range(len(path)-1):
+      t=t+(1/v)*sqrt((path[i+1][0]-path[i][0])**2+(path[i+1][1]-path[i][1])**2)+param["alpha"]*50+0.5*param["alpha"]*(path[i+1][2]-50)
+      if path[i + 1][4] == "bois":
+        m["bois"] += path[i+1][3]
+      elif path[i + 1][4] == "pierre":
+        m["pierre"] += path[i+1][3]
+      elif path[i + 1][4] == "metal":
+        m["metal"] += path[i+1][3]
+    mats.append(m)
+    time.append(t)
+    resPath.append(nodeToJSON(path))
+
+
+
   t_min = (1/v)*sqrt((debut["x"]-fin["x"])**2+(debut["y"]-fin["y"])**2)
 
 
-  print({"Temps min (s)": t_min,"Temps réel (s)": t,"Matériaux": m, "count": count, "path": nodeToJSON(myPath)})
+
+  print({"Temps min (s)": t_min,"Temps réel (s)": time,"Matériaux": mats, "count": count, "path": resPath})
 
 

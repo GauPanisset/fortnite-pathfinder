@@ -122,6 +122,15 @@
           :value=item.value
         ></v-radio>
       </v-radio-group>
+      <v-radio-group v-model="modeSelection" row>
+        <v-radio
+          v-for="(item) in modeRadio"
+          :key=item.value
+          :label=item.label
+          color="green"
+          :value=item.value
+        ></v-radio>
+      </v-radio-group>
 
       <v-divider></v-divider>
 
@@ -147,7 +156,7 @@
       <v-spacer></v-spacer>
     </v-toolbar>
     <v-content>
-      <Map v-on:position="setPosition($event)" :selection="selection"></Map>
+      <Map v-on:position="setPosition($event)" :selection="{'selection': selection, 'mode': modeSelection}"></Map>
     </v-content>
 
     <v-footer :fixed="fixed" app>
@@ -198,7 +207,18 @@
         }, {
           value: 'fin',
           label: "Point d'arriver",
-        }]
+        }],
+        modeRadio: [{
+          value: 'solo',
+          label: 'Solo',
+        }, {
+          value: 'duo',
+          label: 'Duo',
+        }, {
+          value: 'squad',
+          label: 'Squad',
+        }],
+        modeSelection: 'solo',
       }
     },
     name: 'App',
@@ -235,16 +255,6 @@
         })
           .then(response => {
             location.reload();
-            /*this.dialogAjout = false;
-            this.items.push({
-              value: response.data.id,
-              label: this.inputNom,
-            });
-            this.inputNom = '';
-            this.inputVie = '';
-            this.inputMoyenne = '';
-            this.inputVariance = '';
-            this.inputMatiere = '';*/
           })
           .catch(err => {
             console.log(err);
@@ -254,12 +264,6 @@
         axios.delete('/data/objet/' + this.selection)
           .then(response => {
             location.reload();
-            /*this.dialogSuppr = false;
-            this.items.splice(this.items.indexOf({
-              value: this.selection,
-              label: this.getNameFromId(this.selection),
-            }), 1);
-            this.selection = null;*/
           })
           .catch(err => {
             console.log(err);
@@ -276,23 +280,6 @@
         })
           .then(response => {
             location.reload();
-            /*console.log(this.objetListe(this.items).indexOf(this.getNameFromId(this.selection)));
-            this.items.splice(this.items.indexOf({
-              value: this.selection,
-              label: this.getNameFromId(this.selection),
-            }), 1);
-            this.items.push({
-              value: this.selection,
-              label: this.inputNom,
-            });
-
-            this.dialogModif = false;
-            this.selection = null;
-            this.inputNom = '';
-            this.inputVie = '';
-            this.inputMoyenne = '';
-            this.inputVariance = '';
-            this.inputMatiere = '';*/
           })
           .catch(err => {
             console.log(err);
