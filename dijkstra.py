@@ -103,12 +103,13 @@ def inEllipse(node, a, b, c):       #a et b sont les foyers, c est tel que 2c >=
 
 if __name__ == '__main__':
   v = 2.2
+
   time = []
   mats = []
   resPath = []
   param = {
     "alpha":0.0133,     #Default
-    "beta":0.16,
+    "beta":0.078,
     "alphab":0.0133,    #Bois
     "betab":0.16,
     "alphap":0.0133,    #Pierre
@@ -140,10 +141,9 @@ if __name__ == '__main__':
       node2 = (n2["x"], n2["y"], n2["vie"], n2["moyenne"], n2["matiere"])
       dist1 = distance(node, node2, param)
       dist2 = distance(node2, node, param)
-      if dist1 > 0:
-        graph.add_edge(node, node2, dist1)
-      if dist2 > 0:
-        graph.add_edge(node2, node, dist2)
+      graph.add_edge(node, node2, dist1)
+      graph.add_edge(node, node2, dist2)
+      
   myPath = shortest_path(graph, (debut["x"], debut["y"],0,0,None), (fin["x"], fin["y"],0,0,None), mode)
 
   for path in myPath:
