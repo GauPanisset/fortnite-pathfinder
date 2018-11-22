@@ -178,7 +178,7 @@
                 response.data.forEach(marker => {
                   if (!that.visible.includes(marker.id)) {
                     that.visible.push(marker.id);
-                    that.drawConstru[marker.matiere] += marker.moyenne;
+                    that.drawConstru[marker.matiere] += marker.moyenne*1.4;
                     let newMarker = new L.marker(map.unproject(L.point(marker.x*Math.pow(2, map.getZoom() - 2), marker.y*Math.pow(2, map.getZoom() - 2))), {
                       icon: iconDraw,
                     }).addTo(map);
