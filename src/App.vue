@@ -157,16 +157,16 @@
       <v-toolbar-title v-text="title"></v-toolbar-title>
       <v-spacer></v-spacer>
       <v-toolbar-items class="modify-tool">
-        <v-btn icon>  <!--@click.stop="draw = !draw"-->
-          <v-icon v-html="'edit'"></v-icon>
+        <v-btn icon @click.stop="toolSelection.draw = !toolSelection.draw; toolSelection.delete = false; selection = null">
+          <v-icon :color="toolSelection.draw ? 'primary' : 'black'" :style="toolSelection.draw ? {'border-radius': '50%', 'padding': '5px', 'box-shadow': '0px 0px 3px black'} : {}" v-html="'edit'"></v-icon>
         </v-btn>
-        <v-btn icon>
-          <v-icon v-html="'delete'"></v-icon>
+        <v-btn icon @click.stop="toolSelection.delete = !toolSelection.delete; toolSelection.draw = false; selection = null">
+          <v-icon :color="toolSelection.delete ? 'primary' : 'black'" :style="toolSelection.delete ? {'border-radius': '50%', 'padding': '5px', 'box-shadow': '0px 0px 3px black'} : {}"" v-html="'delete'"></v-icon>
         </v-btn>
       </v-toolbar-items>
     </v-toolbar>
     <v-content>
-      <Map v-on:position="setPosition($event)" :selection="{'selection': selection, 'mode': modeSelection}"></Map>
+      <Map v-on:position="setPosition($event)" :selection="{'selection': selection, 'mode': modeSelection, 'tool': toolSelection}"></Map>
     </v-content>
 
     <v-footer :fixed="fixed" app>
@@ -228,8 +228,10 @@
           label: 'Squad',
         }],
         modeSelection: 'solo',
-        draw: false,
-        delete: false,
+        toolSelection: {
+          draw: false,
+          delete: false,
+        },
       }
     },
     name: 'App',

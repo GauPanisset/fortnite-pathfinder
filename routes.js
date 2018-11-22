@@ -82,6 +82,15 @@ router.get('/marqueur/:id', (req, res, next) => {
   }
 });
 
+router.get('/pointer/draw', (req, res, next) => {
+  DB.data.query('SELECT position.id AS id, position.x AS x, position.y AS y, objet.moyenne AS moyenne, objet.matiere AS matiere FROM position INNER JOIN objet ON objet.id=position.objet WHERE ((position.x - ?)*(position.x - ?) + (position.y - ?)*(position.y - ?)) < ?', [req.query.x, req.query.x, req.query.y, req.query.y, 100], (err, data) => {
+    if (err) {
+      return next(err)
+    }
+    res.json(data);
+  });
+});
+
 router.get('/chemin', (req, res, next) => {
   const debut = JSON.parse(req.query.debut);
   const fin = JSON.parse(req.query.fin);

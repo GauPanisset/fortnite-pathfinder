@@ -5,12 +5,14 @@
       <v-btn :disabled="selection.selection === 'fin' || selection.selection === 'debut'" color="green" @click="displayMarker()">Afficher les marqueurs : {{selection.selection}}</v-btn>
       <v-btn color="green" @click="hideMarker()">Masquer les marqueurs</v-btn>
       <v-btn color="red" @click="showPath()">Calculer le chemin</v-btn>
+      <p>{{drawConstru}}</p>
     </div>
   </div>
 </template>
 
 <script>
     import L from 'leaflet';
+    import 'leaflet-draw';
 
     import axios from 'axios';
 
@@ -26,6 +28,12 @@
           startMarker: null,
           endMarker: null,
           path: null,
+          drawConstru: {
+            'bois': 0,
+            'pierre': 0,
+            'metal': 0,
+          },
+          visible: [],
         }
       },
       methods: {
@@ -97,6 +105,12 @@
           iconAnchor: [16, 32],
         });
 
+        let iconDraw = L.icon({
+          iconUrl: require('../assets/images/circular.svg'),
+          iconSize: [32, 32],
+          iconAnchor: [16, 16],
+        });
+
         let iconDebut = L.icon({
           iconUrl: require('../assets/images/pinS.svg'),
           iconSize: [64, 64],
@@ -110,6 +124,7 @@
         });
 
         this.myIcon = myIcon;
+
         let map = L.map('map', {
           dragging: false,
         }).setView([1, 1], 2);
@@ -128,32 +143,48 @@
         map.on('click', addMarker);
 
         function addMarker(e){
-          if (that.selection.selection === 'debut') {
-            if (that.startMarker === null) {
-              that.startMarker = new L.marker(e.latlng, {
-                icon: iconDebut,
-              }).addTo(map);
+          if (that.selection.selection !== null) {
+            if (that.selection.selection === 'debut') {
+              if (that.startMarker === null) {
+                that.startMarker = new L.marker(e.latlng, {
+                  icon: iconDebut,
+                }).addTo(map);
+              } else {
+                that.startMarker.setLatLng(e.latlng);
+              }
+              let position = map.project(e.latlng, map.getZoom());
+              that.sendPosition(position.x, position.y, map.getZoom());
+            } else if (that.selection.selection === 'fin') {
+              if (that.endMarker === null) {
+                that.endMarker = new L.marker(e.latlng, {
+                  icon: iconFin,
+                }).addTo(map);
+              } else {
+                that.endMarker.setLatLng(e.latlng);
+              }
+              let position = map.project(e.latlng, map.getZoom());
+              that.sendPosition(position.x, position.y, map.getZoom());
             } else {
-              that.startMarker.setLatLng(e.latlng);
-            }
-            let position = map.project(e.latlng, map.getZoom());
-            that.sendPosition(position.x, position.y, map.getZoom());
-          } else if (that.selection.selection === 'fin') {
-            if (that.endMarker === null) {
-              that.endMarker = new L.marker(e.latlng, {
-                icon: iconFin,
+              let newMarker = new L.marker(e.latlng, {
+                icon: myIcon,
               }).addTo(map);
-            } else {
-              that.endMarker.setLatLng(e.latlng);
+              let position = map.project(e.latlng, map.getZoom());
+              that.sendPosition(position.x, position.y, map.getZoom());
             }
-            let position = map.project(e.latlng, map.getZoom());
-            that.sendPosition(position.x, position.y, map.getZoom());
           } else {
-            let newMarker = new L.marker(e.latlng, {
-              icon: myIcon,
-            }).addTo(map);
             let position = map.project(e.latlng, map.getZoom());
-            that.sendPosition(position.x, position.y, map.getZoom());
+            axios.get('/data/pointer/draw/?x=' + Math.round(position.x/Math.pow(2, map.getZoom() - 2)) + '&y=' + Math.round(position.y/Math.pow(2, map.getZoom() - 2)))
+              .then(response => {
+                response.data.forEach(marker => {
+                  if (!that.visible.includes(marker.id)) {
+                    that.visible.push(marker.id);
+                    that.drawConstru[marker.matiere] += marker.moyenne;
+                    let newMarker = new L.marker(map.unproject(L.point(marker.x*Math.pow(2, map.getZoom() - 2), marker.y*Math.pow(2, map.getZoom() - 2))), {
+                      icon: iconDraw,
+                    }).addTo(map);
+                  }
+                })
+              })
           }
         }
       }

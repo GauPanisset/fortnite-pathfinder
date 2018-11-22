@@ -109,7 +109,7 @@ if __name__ == '__main__':
   resPath = []
   param = {
     "alpha":0.0133,     #Default
-    "beta":0.078,
+    "beta":0.16,
     "alphab":0.0133,    #Bois
     "betab":0.16,
     "alphap":0.0133,    #Pierre
@@ -142,7 +142,7 @@ if __name__ == '__main__':
       dist1 = distance(node, node2, param)
       dist2 = distance(node2, node, param)
       graph.add_edge(node, node2, dist1)
-      graph.add_edge(node, node2, dist2)
+      graph.add_edge(node2, node, dist2)
       
   myPath = shortest_path(graph, (debut["x"], debut["y"],0,0,None), (fin["x"], fin["y"],0,0,None), mode)
 
