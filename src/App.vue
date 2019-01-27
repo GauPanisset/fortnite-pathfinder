@@ -47,7 +47,7 @@
           </v-card-text>
           <v-card-actions>
             <v-spacer></v-spacer>
-            <v-btn color="blue" flat @click.native="ajouterObjet">Confirmer</v-btn>
+            <v-btn :disabled="distributedMap" color="blue" flat @click.native="ajouterObjet">Confirmer</v-btn>
             <v-btn color="blue" flat @click.native="dialogAjout = false">Annuler</v-btn>
           </v-card-actions>
         </v-card>
@@ -59,7 +59,7 @@
           <v-card-title class="headline">Supprimer l'objet sélectionné ?</v-card-title>
           <v-card-actions>
             <v-spacer></v-spacer>
-            <v-btn color="blue" flat @click.native="supprimerObjet">Confirmer</v-btn>
+            <v-btn :disabled="distributedMap" color="blue" flat @click.native="supprimerObjet">Confirmer</v-btn>
             <v-btn color="blue" flat @click.native="dialogSuppr = false">Annuler</v-btn>
           </v-card-actions>
         </v-card>
@@ -104,7 +104,7 @@
           </v-card-text>
           <v-card-actions>
             <v-spacer></v-spacer>
-            <v-btn color="blue" flat @click.native="modifierObjet">Confirmer</v-btn>
+            <v-btn :disabled="distributedMap" color="blue" flat @click.native="modifierObjet">Confirmer</v-btn>
             <v-btn color="blue" flat @click.native="dialogModif = false">Annuler</v-btn>
           </v-card-actions>
         </v-card>
@@ -121,7 +121,16 @@
           :value=item.value
         ></v-radio>
       </v-radio-group>
-      <v-radio-group v-model="modeSelection" row>
+      <v-radio-group :disabled="!distributedMap" v-model="moveSelection" row>
+        <v-radio
+          v-for="(item) in moveRadio"
+          :key=item.value
+          :label=item.label
+          color="green"
+          :value=item.value
+        ></v-radio>
+      </v-radio-group>
+      <v-radio-group :disabled="distributedMap" v-model="modeSelection" row>
         <v-radio
           v-for="(item) in modeRadio"
           :key=item.value
@@ -136,7 +145,7 @@
       <v-expansion-panel>
         <v-expansion-panel-content>
           <div slot="header">Objets</div>
-          <v-radio-group v-model="selection" column>
+          <v-radio-group :disabled="distributedMap" v-model="selection" column>
             <v-radio
               v-for="(item) in items"
               :key=item.value
@@ -166,7 +175,7 @@
       </v-toolbar-items>
     </v-toolbar>
     <v-content>
-      <Map v-on:position="setPosition($event)" :selection="{'selection': selection, 'mode': modeSelection, 'tool': toolSelection}"></Map>
+      <Map v-on:position="setPosition($event)" :selection="{'selection': selection, 'mode': modeSelection, 'move': moveSelection, 'tool': toolSelection}" :distributedMap="distributedMap"></Map>
     </v-content>
 
     <v-footer :fixed="fixed" app>
@@ -182,6 +191,7 @@
   export default {
     data () {
       return {
+        distributedMap: true,
         clipped: true,
         drawer: true,
         fixed: false,
@@ -189,7 +199,7 @@
         right: true,
         rightDrawer: false,
         title: 'Fortnite Map',
-        selection: null,
+        selection: 'debut',
         position: '(0, 0)',
         dialogAjout: false,    //true si modal affiché, false sinon.
         dialogSuppr: false,
@@ -207,8 +217,8 @@
           value: 'pierre',
           label: 'Pierre',
         }, {
-          value: 'acier',
-          label: 'Acier',
+          value: 'metal',
+          label: 'Metal',
         }],
         specialMarker: [{
           value: 'debut',
@@ -228,6 +238,17 @@
           label: 'Squad',
         }],
         modeSelection: 'solo',
+        moveRadio: [{
+          value: 'pied',
+          label: 'Pied',
+        }, {
+          value: 'quad',
+          label: 'Quad',
+        }, {
+          value: 'avion',
+          label: 'Avion',
+        }],
+        moveSelection:'pied',
         toolSelection: {
           draw: false,
           delete: false,

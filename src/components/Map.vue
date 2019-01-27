@@ -4,7 +4,7 @@
     <div class="text-xs-center">
       <v-btn :disabled="selection.selection === 'fin' || selection.selection === 'debut'" color="green" @click="displayMarker()">Afficher les marqueurs : {{selection.selection}}</v-btn>
       <v-btn color="green" @click="hideMarker()">Masquer les marqueurs</v-btn>
-      <v-btn color="red" @click="showPath()">Calculer le chemin</v-btn>
+      <v-btn disabled="distributedMap" color="red" @click="showPath()">Calculer le chemin</v-btn>
       <p>{{drawConstru}}</p>
     </div>
   </div>
@@ -19,7 +19,7 @@
 
     export default {
       name: "Map",
-      props: ['selection'],
+      props: ['selection', 'distributedMap'],
       data() {
         return {
           map: null,
@@ -34,6 +34,7 @@
             'metal': 0,
           },
           visible: [],
+          time: 0,
         }
       },
       methods: {
@@ -77,8 +78,8 @@
           axios.get('/data/chemin/?debut={"x":'+start.x+',"y":'+start.y+'}&fin={"x":'+end.x+',"y":'+end.y+'}&mode="'+this.selection.mode+'"')
             .then(response => {
               const colors = ["#cc0000", "#8187ff", "#b0d996", "#ffd700"];
-              for (let i = 0 ; i < response.data.length; i++) {
-                let path = response.data[i];
+              for (let i = 0 ; i < response.data.path.length; i++) {
+                let path = response.data.path[i];
                 console.log(path);
                 let nodes = [];
                 path.forEach(marker => {
@@ -87,6 +88,8 @@
                 });
                 this.path = L.polyline(nodes, {color: colors[i]});
                 this.path.addTo(this.map);
+
+                this.drawConstru = response.data.mats;
               };
             })
             .catch(err => {
@@ -96,7 +99,6 @@
 
       },
       mounted() {
-
         const that = this;
 
         let myIcon = L.icon({
@@ -132,7 +134,7 @@
         this.map = map;
         //let bounds = L.latLngBounds(L.latLng(0, 0), L.latLng(50, 100));
 
-        L.tileLayer('https://oyster.ignimgs.com/ignmedia/wikimaps/fortnite/season-6/{z}/{x}-{y}.jpg', {
+        L.tileLayer('https://oyster.ignimgs.com/ignmedia/wikimaps/fortnite/season-7/{z}/{x}-{y}.jpg', {
           minZoom: 1,
           maxZoom: 6,
           attribution: 'fortnite-map',
@@ -140,9 +142,31 @@
           noWrap: true,
         }).addTo(map);
 
+        if (that.selection.tool.draw) {
+          L.DomUtil.addClass(map._container,'circle-cursor-enabled');
+        }
+
         map.on('click', addMarker);
 
+        function computeTime(){
+          if (that.startMarker !== null)
+          {
+            let positionStart = map.project(that.startMarker.getLatLng());
+            let positionEnd = map.project(that.endMarker.getLatLng());
+            let dist = Math.sqrt(Math.pow(positionStart.x/Math.pow(2, map.getZoom() - 2) - positionEnd.x/Math.pow(2, map.getZoom() - 2), 2) + Math.pow(positionStart.y/Math.pow(2, map.getZoom() - 2) - positionEnd.y/Math.pow(2, map.getZoom() - 2), 2));
+            if (that.selection.move === "pied"){
+              that.time = Math.round((1/2.2)*dist);
+            } else if (that.selection.move === "quad" ){
+              that.time = Math.round((1/4.5)*dist);     //4.5 boost | 3.8 sans boost
+            } else if (that.selection.move === "avion" ) {
+              that.time = Math.round((1/8)*dist);      //8 boost | 6.6 sans boost
+            }
+            console.log("Time : "+that.time);
+          }
+        }
+
         function addMarker(e){
+
           if (that.selection.selection !== null) {
             if (that.selection.selection === 'debut') {
               if (that.startMarker === null) {
@@ -155,15 +179,36 @@
               let position = map.project(e.latlng, map.getZoom());
               that.sendPosition(position.x, position.y, map.getZoom());
             } else if (that.selection.selection === 'fin') {
-              if (that.endMarker === null) {
-                that.endMarker = new L.marker(e.latlng, {
-                  icon: iconFin,
-                }).addTo(map);
+              if (that.distributedMap) {
+                if (that.endMarker === null) {
+                  that.endMarker = new L.marker(e.latlng, {
+                    icon: iconFin,
+                  });
+                  computeTime();
+                  that.endMarker.addTo(map).bindTooltip("<div class='my-tooltip' style='padding: 2px; border: 1px solid black;border-radius: 2px;background-color: rgba(255, 255, 255, 0.8);'>Temps : "+ that.time+"s</div>",
+                    {
+                      pane: 'markerPane',
+                      permanent: true,
+                      direction: 'bottom',
+                    });
+                } else {
+                  that.endMarker.setLatLng(e.latlng);
+                  computeTime();
+                  that.endMarker.setTooltipContent("<div class='my-tooltip' style='padding: 2px; border: 1px solid black;border-radius: 2px;background-color: rgba(255, 255, 255, 0.8);'>Temps : "+ that.time+"s</div>");
+                }
+                let position = map.project(e.latlng, map.getZoom());
+                that.sendPosition(position.x, position.y, map.getZoom());
               } else {
-                that.endMarker.setLatLng(e.latlng);
+                if (that.endMarker === null) {
+                  that.endMarker = new L.marker(e.latlng, {
+                    icon: iconFin,
+                  }).addTo(map);
+                } else {
+                  that.endMarker.setLatLng(e.latlng);
+                }
+                let position = map.project(e.latlng, map.getZoom());
+                that.sendPosition(position.x, position.y, map.getZoom());
               }
-              let position = map.project(e.latlng, map.getZoom());
-              that.sendPosition(position.x, position.y, map.getZoom());
             } else {
               let newMarker = new L.marker(e.latlng, {
                 icon: myIcon,
@@ -178,7 +223,7 @@
                 response.data.forEach(marker => {
                   if (!that.visible.includes(marker.id)) {
                     that.visible.push(marker.id);
-                    that.drawConstru[marker.matiere] += marker.moyenne*1.4;
+                    that.drawConstru[marker.matiere] += marker.moyenne;
                     let newMarker = new L.marker(map.unproject(L.point(marker.x*Math.pow(2, map.getZoom() - 2), marker.y*Math.pow(2, map.getZoom() - 2))), {
                       icon: iconDraw,
                     }).addTo(map);
@@ -200,4 +245,16 @@
     width: 70vw;
     height: 80vh;
   }
+
+  .leaflet-container.circle-cursor-enabled {
+    cursor:crosshair;
+  }
+
+  .my-tooltip {
+    padding: 2px;
+    border: 1px solid black;
+    border-radius: 2px;
+    background-color: rgba(255, 255, 255, 0.8);
+  }
+
 </style>

@@ -104,23 +104,24 @@ router.get('/chemin', (req, res, next) => {
     r: (fin.x - debut.x)*(fin.x - debut.x) + (fin.y - debut.y)*(fin.y - debut.y),
   };
 
+
   let timer = Date.now();
 
   DB.data.query('SELECT position.x AS x, position.y AS y, objet.vie AS vie, objet.moyenne AS moyenne, objet.variance AS variance, objet.matiere AS matiere FROM position INNER JOIN objet ON objet.id=position.objet WHERE ((position.x - ?)*(position.x - ?) + (position.y - ?)*(position.y - ?)) < ?', [center.x, center.x, center.y, center.y, center.r], (err, data) => {
     if (err) {
       return next(err);
     }
-
     pyshell.send(JSON.stringify([mode, debut, fin, data]));
 
     pyshell.on('message', function (message) {
+
       data = JSON.parse(message.split('\'').join('"'));
       for(let key in data) {
         if (key !== "path") {
           console.log(key + " : " + JSON.stringify(data[key]) + '\n');
         }
       }
-      res.json(data.path);
+      res.json({"path": data.path, "mats": data["Matériaux"]});
     });
 
     pyshell.end(function (err) {

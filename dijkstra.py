@@ -141,11 +141,12 @@ if __name__ == '__main__':
       node2 = (n2["x"], n2["y"], n2["vie"], n2["moyenne"], n2["matiere"])
       dist1 = distance(node, node2, param)
       dist2 = distance(node2, node, param)
-      graph.add_edge(node, node2, dist1)
-      graph.add_edge(node2, node, dist2)
-      
-  myPath = shortest_path(graph, (debut["x"], debut["y"],0,0,None), (fin["x"], fin["y"],0,0,None), mode)
+      if dist1 > 0:
+        graph.add_edge(node, node2, dist1)
+      if dist2 > 0:
+        graph.add_edge(node2, node, dist2)
 
+  myPath = shortest_path(graph, (debut["x"], debut["y"],0,0,None), (fin["x"], fin["y"],0,0,None), mode)
   for path in myPath:
     m = {"bois": 0, "pierre": 0, "metal": 0}
     t = 0
@@ -164,7 +165,6 @@ if __name__ == '__main__':
 
 
   t_min = (1/v)*sqrt((debut["x"]-fin["x"])**2+(debut["y"]-fin["y"])**2)
-
 
 
   print({"Temps min (s)": t_min,"Temps réel (s)": time,"Matériaux": mats, "count": count, "path": resPath})
