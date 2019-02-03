@@ -121,12 +121,12 @@
           :value=item.value
         ></v-radio>
       </v-radio-group>
-      <v-radio-group :disabled="!distributedMap" v-model="moveSelection" row>
+      <v-radio-group v-model="moveSelection" row>
         <v-radio
           v-for="(item) in moveRadio"
           :key=item.value
           :label=item.label
-          color="green"
+          :color=item.color
           :value=item.value
         ></v-radio>
       </v-radio-group>
@@ -170,7 +170,7 @@
           <v-icon :color="toolSelection.draw ? 'primary' : 'black'" :style="toolSelection.draw ? {'border-radius': '50%', 'padding': '5px', 'box-shadow': '0px 0px 3px black'} : {}" v-html="'edit'"></v-icon>
         </v-btn>
         <v-btn icon @click.stop="toolSelection.delete = !toolSelection.delete; toolSelection.draw = false; selection = null">
-          <v-icon :color="toolSelection.delete ? 'primary' : 'black'" :style="toolSelection.delete ? {'border-radius': '50%', 'padding': '5px', 'box-shadow': '0px 0px 3px black'} : {}"" v-html="'delete'"></v-icon>
+          <v-icon :color="toolSelection.delete ? 'primary' : 'black'" :style="toolSelection.delete ? {'border-radius': '50%', 'padding': '5px', 'box-shadow': '0px 0px 3px black'} : {}"v-html="'delete'"></v-icon>
         </v-btn>
       </v-toolbar-items>
     </v-toolbar>
@@ -191,7 +191,7 @@
   export default {
     data () {
       return {
-        distributedMap: true,
+        distributedMap: false,
         clipped: true,
         drawer: true,
         fixed: false,
@@ -241,12 +241,15 @@
         moveRadio: [{
           value: 'pied',
           label: 'Pied',
+          color: 'red',
         }, {
           value: 'quad',
           label: 'Quad',
+          color: 'blue',
         }, {
           value: 'avion',
           label: 'Avion',
+          color: 'green',
         }],
         moveSelection:'pied',
         toolSelection: {

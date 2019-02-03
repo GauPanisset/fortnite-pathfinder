@@ -35,6 +35,8 @@
           },
           visible: [],
           time: 0,
+          customPath: [],
+          customPolyline: [],
         }
       },
       methods: {
@@ -90,7 +92,7 @@
                 this.path.addTo(this.map);
 
                 this.drawConstru = response.data.mats;
-              };
+              }
             })
             .catch(err => {
               console.log(err);
@@ -111,6 +113,12 @@
           iconUrl: require('../assets/images/circular.svg'),
           iconSize: [32, 32],
           iconAnchor: [16, 16],
+        });
+
+        let iconNode = L.icon({
+          iconUrl: require('../assets/images/circular.svg'),
+          iconSize: [20, 20],
+          iconAnchor: [10, 10],
         });
 
         let iconDebut = L.icon({
@@ -148,8 +156,50 @@
 
         map.on('click', addMarker);
 
-        function computeTime(){
-          if (that.startMarker !== null)
+        function updatePath() {
+
+          const myColor = {"pied": "red", "quad": "blue", "avion": "green"};
+
+          if (that.customPolyline.length > 0) {
+            that.customPolyline.forEach(line => {
+              line.remove();
+            });
+          }
+          that.customPolyline = [];
+          for (let i = 1; i < that.customPath.length; i++) {
+            that.customPolyline.push(L.polyline([that.customPath[i - 1].position.getLatLng(), that.customPath[i].position.getLatLng()], {color: myColor[that.customPath[i].move]}));
+            that.customPolyline[i - 1].addTo(map);
+          }
+
+        }
+
+        function updateTime(e){
+          const time = totalTime();
+          console.log(time);
+          that.customPath[that.customPath.length - 1].position.unbindTooltip();
+          that.customPath[that.customPath.length - 1].position.bindTooltip("<div class='my-tooltip' style='padding: 2px; border: 1px solid black;border-radius: 2px;background-color: rgba(255, 255, 255, 0.8);'>Temps : "+ time+"s</div>",
+            {
+              pane: 'markerPane',
+              permanent: true,
+              direction: 'bottom',
+            });
+
+          updatePath();
+        }
+
+        function computeTime(start, end, move){
+          start = map.project(start.getLatLng());
+          end = map.project(end.getLatLng());
+          let dist = Math.sqrt(Math.pow(start.x/Math.pow(2, map.getZoom() - 2) - end.x/Math.pow(2, map.getZoom() - 2), 2) + Math.pow(start.y/Math.pow(2, map.getZoom() - 2) - end.y/Math.pow(2, map.getZoom() - 2), 2));
+
+          if (move === "pied"){
+            return Math.round((1/2.2)*dist);
+          } else if (move === "quad" ){
+            return Math.round((1/4.5)*dist);     //4.5 boost | 3.8 sans boost
+          } else if (move === "avion" ) {
+            return Math.round((1/8)*dist);      //8 boost | 6.6 sans boost
+          }
+          /*if (that.startMarker !== null)
           {
             let positionStart = map.project(that.startMarker.getLatLng());
             let positionEnd = map.project(that.endMarker.getLatLng());
@@ -161,11 +211,116 @@
             } else if (that.selection.move === "avion" ) {
               that.time = Math.round((1/8)*dist);      //8 boost | 6.6 sans boost
             }
-            console.log("Time : "+that.time);
+          }*/
+        }
+
+        function totalTime(){
+          let res = 0;
+          for (let i = 1; i < that.customPath.length; i++) {
+            res += computeTime(that.customPath[i - 1].position, that.customPath[i].position, that.customPath[i].move);
           }
+          return res;
+        }
+
+        function deleteMarker(e){
+          console.log("delete");
+          let i = 1;
+          while (i < that.customPath.length && that.customPath[i].position.getLatLng() !== e.latlng) {
+            i++;
+          }
+          if (i > 1 && i === that.customPath.length - 1) {
+            that.customPath[i - 1].position.setIcon(iconFin);
+            that.endMarker = that.customPath[i - 1].position;
+          }
+          if (i < that.customPath.length) {
+            that.customPath[i].position.remove();
+            that.customPath.splice(i, 1);
+          }
+          updatePath();
         }
 
         function addMarker(e){
+          if (that.selection.tool.draw) {
+            let position = map.project(e.latlng, map.getZoom());
+            axios.get('/data/pointer/draw/?x=' + Math.round(position.x/Math.pow(2, map.getZoom() - 2)) + '&y=' + Math.round(position.y/Math.pow(2, map.getZoom() - 2)))
+              .then(response => {
+                response.data.forEach(marker => {
+                  if (!that.visible.includes(marker.id)) {
+                    that.visible.push(marker.id);
+                    that.drawConstru[marker.matiere] += marker.moyenne;
+                    let newMarker = new L.marker(map.unproject(L.point(marker.x*Math.pow(2, map.getZoom() - 2), marker.y*Math.pow(2, map.getZoom() - 2))), {
+                      icon: iconDraw,
+                    }).addTo(map);
+                  }
+                })
+              })
+          } else if (!that.distributedMap && that.selection.tool.delete) {
+            let position = map.project(e.latlng, map.getZoom());
+            axios.delete('/data/pointer/draw/?x=' + Math.round(position.x/Math.pow(2, map.getZoom() - 2)) + '&y=' + Math.round(position.y/Math.pow(2, map.getZoom() - 2)))
+              .then(response => {
+                console.log("deleted");
+              })
+          } else if (that.selection.selection === "debut") {
+            if (that.startMarker === null) {
+              that.startMarker = new L.marker(e.latlng, {
+                icon: iconDebut,
+                draggable: true,
+              }).addTo(map);
+              that.startMarker.on('dragend', updateTime);
+              let point = {
+                position: that.startMarker,
+                move: that.selection.move,
+              };
+              that.customPath.push(point);
+            } else {
+              that.startMarker.setLatLng(e.latlng);
+              that.customPath[0].position.setLatLng(e.latlng);
+            }
+          } else if (that.startMarker !== null && that.selection.selection === "fin") {
+
+            if (that.endMarker === null) {
+              that.endMarker = new L.marker(e.latlng, {
+                icon: iconFin,
+                draggable: true,
+              });
+            } else if (that.customPath.length > 1) {
+              that.customPath[that.customPath.length - 1].position.setIcon(iconNode);
+              that.customPath[that.customPath.length - 1].position.unbindTooltip();
+              that.endMarker.setLatLng(e.latlng);
+            }
+
+            let newMarker = new L.marker(e.latlng, {
+              icon: iconFin,
+              draggable: true,
+            }).addTo(map);
+
+            newMarker.on('click', deleteMarker);
+            newMarker.on('dragend', updateTime);
+
+            let point = {
+              position: newMarker,
+              move: that.selection.move,
+            };
+            that.customPath.push(point);
+
+            newMarker.bindTooltip("<div class='my-tooltip' style='padding: 2px; border: 1px solid black;border-radius: 2px;background-color: rgba(255, 255, 255, 0.8);'>Temps : "+ totalTime()+"s</div>",
+              {
+                pane: 'markerPane',
+                permanent: true,
+                direction: 'bottom',
+              });
+
+            updatePath();
+
+          } else if (!that.distributedMap && that.selection.selection !== null) {
+            let newMarker = new L.marker(e.latlng, {
+              icon: myIcon,
+            }).addTo(map);
+            let position = map.project(e.latlng, map.getZoom());
+            that.sendPosition(position.x, position.y, map.getZoom());
+          }
+        }
+        /*function addMarker(e){
 
           if (that.selection.selection !== null) {
             if (that.selection.selection === 'debut') {
@@ -231,7 +386,7 @@
                 })
               })
           }
-        }
+        }*/
       }
 
     }

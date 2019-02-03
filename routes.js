@@ -91,6 +91,15 @@ router.get('/pointer/draw', (req, res, next) => {
   });
 });
 
+router.delete('/pointer/draw', (req, res, next) => {
+  DB.data.query('DELETE FROM position WHERE ((position.x - ?)*(position.x - ?) + (position.y - ?)*(position.y - ?)) < ?', [req.query.x, req.query.x, req.query.y, req.query.y, 100], (err, data) => {
+    if (err) {
+      return next(err)
+    }
+    res.status(200).end();
+  });
+});
+
 router.get('/chemin', (req, res, next) => {
   const debut = JSON.parse(req.query.debut);
   const fin = JSON.parse(req.query.fin);
