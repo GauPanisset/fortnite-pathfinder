@@ -169,7 +169,7 @@
         <v-btn icon @click.stop="toolSelection.draw = !toolSelection.draw; toolSelection.delete = false; selection = null">
           <v-icon :color="toolSelection.draw ? 'primary' : 'black'" :style="toolSelection.draw ? {'border-radius': '50%', 'padding': '5px', 'box-shadow': '0px 0px 3px black'} : {}" v-html="'edit'"></v-icon>
         </v-btn>
-        <v-btn icon @click.stop="toolSelection.delete = !toolSelection.delete; toolSelection.draw = false; selection = null">
+        <v-btn icon :disabled="distributedMap" @click.stop="toolSelection.delete = !toolSelection.delete; toolSelection.draw = false; selection = null">
           <v-icon :color="toolSelection.delete ? 'primary' : 'black'" :style="toolSelection.delete ? {'border-radius': '50%', 'padding': '5px', 'box-shadow': '0px 0px 3px black'} : {}"v-html="'delete'"></v-icon>
         </v-btn>
       </v-toolbar-items>
@@ -191,7 +191,7 @@
   export default {
     data () {
       return {
-        distributedMap: false,
+        distributedMap: true,
         clipped: true,
         drawer: true,
         fixed: false,
