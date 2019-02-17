@@ -230,6 +230,12 @@
           }
           if (i > 1 && i === that.customPath.length - 1) {
             that.customPath[i - 1].position.setIcon(iconFin);
+            that.customPath[i - 1].position.bindTooltip("<div class='my-tooltip' style='padding: 2px; border: 1px solid black;border-radius: 2px;background-color: rgba(255, 255, 255, 0.8);'>Temps : "+ totalTime()+"s</div>",
+              {
+                pane: 'markerPane',
+                permanent: true,
+                direction: 'bottom',
+              });
             that.endMarker = that.customPath[i - 1].position;
           }
           if (i < that.customPath.length) {
