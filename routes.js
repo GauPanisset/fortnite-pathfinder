@@ -2,7 +2,7 @@ const Express = require('express');
 const router = Express.Router();
 const DB = require('./database.js');
 const PythonShell = require('python-shell');
-const Storage = require('./storage');
+const Storage = require('./jsonpath/storage');
 const Path = require('path');
 const Fs = require('fs');
 
