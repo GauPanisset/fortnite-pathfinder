@@ -2,6 +2,9 @@ const Express = require('express');
 const router = Express.Router();
 const DB = require('./database.js');
 const PythonShell = require('python-shell');
+const Storage = require('./storage');
+const Path = require('path');
+const Fs = require('fs');
 
 
 router.post('/create', (req, res, next) => {
@@ -140,8 +143,21 @@ router.get('/chemin', (req, res, next) => {
       console.log('finished in '+ Math.floor((Date.now() - timer)/1000) + 's.');
     });
   })
+});
 
-
+router.post('/jsonpath', Storage.upload.single('jsonpath'), (req, res, next) => {
+  if (req.file !== undefined) {
+    const myPath = Path.resolve(req.file.path);
+    const content = JSON.parse(Fs.readFileSync(myPath));
+    res.json(content);
+    Fs.unlink(myPath, (err) => {
+      if (err) throw err;
+      console.log('deleted');
+    });
+  }
+  else {
+    console.log("File not found")
+  }
 });
 
 

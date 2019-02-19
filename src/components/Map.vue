@@ -4,7 +4,7 @@
     <div class="text-xs-center">
       <v-btn :disabled="selection.selection === 'fin' || selection.selection === 'debut'" color="green" @click="displayMarker()">Afficher les marqueurs : {{selection.selection}}</v-btn>
       <v-btn color="green" @click="hideMarker()">Masquer les marqueurs</v-btn>
-      <v-btn disabled="distributedMap" color="red" @click="showPath()">Calculer le chemin</v-btn>
+      <v-btn :disabled="distributedMap" color="red" @click="showPath()">Calculer le chemin</v-btn>
       <p>{{drawConstru}}</p>
     </div>
   </div>
@@ -37,6 +37,7 @@
           time: 0,
           customPath: [],
           customPolyline: [],
+          jsonPathMarker: null,
         }
       },
       methods: {
@@ -97,8 +98,32 @@
             .catch(err => {
               console.log(err);
             })
-        }
+        },
+        displayJsonPath(jsonpath){
+          this.map.setZoom(3);
+          let nodes = [];
+          jsonpath.forEach(node => {
+            let pos = this.map.unproject(L.point(node.x, node.y), 3);
+            nodes.push(pos);
+          });
 
+          L.polyline(nodes).addTo(this.map);
+          this.jsonPathMarker = L.marker(this.map.unproject(L.point(jsonpath[0].x, jsonpath[0].y), 3)).addTo(this.map);
+          this.jsonPathMarker.bindTooltip("<div class='my-tooltip' style='padding: 2px; border: 1px solid black;border-radius: 2px;background-color: rgba(255, 255, 255, 0.8);'>" + jsonpath[0].time + "s</div>",
+            {
+              pane: 'markerPane',
+              permanent: true,
+              direction: 'bottom',
+            });
+        },
+        updateJsonPathMarker(jsonpath, time){
+          let index = 0;
+          while (index < jsonpath.length && jsonpath[index].time !== time) {
+            index ++;
+          }
+          this.jsonPathMarker.setLatLng(this.map.unproject(L.point(jsonpath[index].x, jsonpath[index].y), 3));
+          this.jsonPathMarker.setTooltipContent("<div class='my-tooltip' style='padding: 2px; border: 1px solid black;border-radius: 2px;background-color: rgba(255, 255, 255, 0.8);'>" + jsonpath[index].time + "s</div>")
+        }
       },
       mounted() {
         const that = this;
@@ -199,19 +224,6 @@
           } else if (move === "avion" ) {
             return Math.round((1/8)*dist);      //8 boost | 6.6 sans boost
           }
-          /*if (that.startMarker !== null)
-          {
-            let positionStart = map.project(that.startMarker.getLatLng());
-            let positionEnd = map.project(that.endMarker.getLatLng());
-            let dist = Math.sqrt(Math.pow(positionStart.x/Math.pow(2, map.getZoom() - 2) - positionEnd.x/Math.pow(2, map.getZoom() - 2), 2) + Math.pow(positionStart.y/Math.pow(2, map.getZoom() - 2) - positionEnd.y/Math.pow(2, map.getZoom() - 2), 2));
-            if (that.selection.move === "pied"){
-              that.time = Math.round((1/2.2)*dist);
-            } else if (that.selection.move === "quad" ){
-              that.time = Math.round((1/4.5)*dist);     //4.5 boost | 3.8 sans boost
-            } else if (that.selection.move === "avion" ) {
-              that.time = Math.round((1/8)*dist);      //8 boost | 6.6 sans boost
-            }
-          }*/
         }
 
         function totalTime(){
@@ -282,6 +294,10 @@
               that.startMarker.setLatLng(e.latlng);
               that.customPath[0].position.setLatLng(e.latlng);
             }
+            let position = map.project(e.latlng, map.getZoom());
+            console.log(e.latlng);
+            console.log(position);
+            that.sendPosition(position.x, position.y, map.getZoom());
           } else if (that.startMarker !== null && that.selection.selection === "fin") {
 
             if (that.endMarker === null) {
@@ -326,73 +342,6 @@
             that.sendPosition(position.x, position.y, map.getZoom());
           }
         }
-        /*function addMarker(e){
-
-          if (that.selection.selection !== null) {
-            if (that.selection.selection === 'debut') {
-              if (that.startMarker === null) {
-                that.startMarker = new L.marker(e.latlng, {
-                  icon: iconDebut,
-                }).addTo(map);
-              } else {
-                that.startMarker.setLatLng(e.latlng);
-              }
-              let position = map.project(e.latlng, map.getZoom());
-              that.sendPosition(position.x, position.y, map.getZoom());
-            } else if (that.selection.selection === 'fin') {
-              if (that.distributedMap) {
-                if (that.endMarker === null) {
-                  that.endMarker = new L.marker(e.latlng, {
-                    icon: iconFin,
-                  });
-                  computeTime();
-                  that.endMarker.addTo(map).bindTooltip("<div class='my-tooltip' style='padding: 2px; border: 1px solid black;border-radius: 2px;background-color: rgba(255, 255, 255, 0.8);'>Temps : "+ that.time+"s</div>",
-                    {
-                      pane: 'markerPane',
-                      permanent: true,
-                      direction: 'bottom',
-                    });
-                } else {
-                  that.endMarker.setLatLng(e.latlng);
-                  computeTime();
-                  that.endMarker.setTooltipContent("<div class='my-tooltip' style='padding: 2px; border: 1px solid black;border-radius: 2px;background-color: rgba(255, 255, 255, 0.8);'>Temps : "+ that.time+"s</div>");
-                }
-                let position = map.project(e.latlng, map.getZoom());
-                that.sendPosition(position.x, position.y, map.getZoom());
-              } else {
-                if (that.endMarker === null) {
-                  that.endMarker = new L.marker(e.latlng, {
-                    icon: iconFin,
-                  }).addTo(map);
-                } else {
-                  that.endMarker.setLatLng(e.latlng);
-                }
-                let position = map.project(e.latlng, map.getZoom());
-                that.sendPosition(position.x, position.y, map.getZoom());
-              }
-            } else {
-              let newMarker = new L.marker(e.latlng, {
-                icon: myIcon,
-              }).addTo(map);
-              let position = map.project(e.latlng, map.getZoom());
-              that.sendPosition(position.x, position.y, map.getZoom());
-            }
-          } else {
-            let position = map.project(e.latlng, map.getZoom());
-            axios.get('/data/pointer/draw/?x=' + Math.round(position.x/Math.pow(2, map.getZoom() - 2)) + '&y=' + Math.round(position.y/Math.pow(2, map.getZoom() - 2)))
-              .then(response => {
-                response.data.forEach(marker => {
-                  if (!that.visible.includes(marker.id)) {
-                    that.visible.push(marker.id);
-                    that.drawConstru[marker.matiere] += marker.moyenne;
-                    let newMarker = new L.marker(map.unproject(L.point(marker.x*Math.pow(2, map.getZoom() - 2), marker.y*Math.pow(2, map.getZoom() - 2))), {
-                      icon: iconDraw,
-                    }).addTo(map);
-                  }
-                })
-              })
-          }
-        }*/
       }
 
     }

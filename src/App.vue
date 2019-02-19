@@ -141,7 +141,16 @@
       </v-radio-group>
 
       <v-divider></v-divider>
-
+      <v-expansion-panel>
+        <v-expansion-panel-content>
+          <div slot="header">Trajet</div>
+          <v-btn color="primary" dark class="my-input">
+            path.json
+            <input type="file" ref="myFileInput" name="jsonpath" id="myFile" @change="sendFile">
+          </v-btn>
+        </v-expansion-panel-content>
+      </v-expansion-panel>
+      <v-divider></v-divider>
       <v-expansion-panel>
         <v-expansion-panel-content>
           <div slot="header">Objets</div>
@@ -175,12 +184,28 @@
       </v-toolbar-items>
     </v-toolbar>
     <v-content>
-      <Map v-on:position="setPosition($event)" :selection="{'selection': selection, 'mode': modeSelection, 'move': moveSelection, 'tool': toolSelection}" :distributedMap="distributedMap"></Map>
+      <Map ref="myMap" v-on:position="setPosition($event)" :selection="{'selection': selection, 'mode': modeSelection, 'move': moveSelection, 'tool': toolSelection}" :distributedMap="distributedMap" :path_time="path_time"></Map>
     </v-content>
 
+
     <v-footer :fixed="fixed" app>
-      <div>{{position}}</div>
+      <div v-if="jsonpath === null">{{position}}</div>
+      <v-bottom-nav
+        v-if="jsonpath !== null"
+        :value="true"
+        absolute
+        color="white"
+      >
+        <v-slider
+          v-model="path_time"
+          :max="jsonpath[jsonpath.length - 1].time"
+          :label="path_time + 's'"
+          @change="updateJsonPathTime"
+        ></v-slider>
+      </v-bottom-nav>
     </v-footer>
+
+
   </v-app>
 </template>
 
@@ -256,12 +281,15 @@
           draw: false,
           delete: false,
         },
+        jsonpath: null,
+        path_time: null,
       }
     },
     name: 'App',
     components: {
       Map,
     },
+
     methods: {
       setPosition(e) {
 
@@ -341,7 +369,7 @@
         return name;
       },
       setAttribut(id) {
-        axios.get('/data/objet/'+id)
+        axios.get('/data/objet/' + id)
           .then(response => {
             this.inputNom = response.data[0].nom;
             this.inputMatiere = response.data[0].matiere;
@@ -352,6 +380,26 @@
           .catch(err => {
             console.log(err);
           })
+      },
+      sendFile() {
+        this.myFile = this.$refs.myFileInput.files[0];
+        this.$emit('load', true);
+
+        let data = new FormData();
+        data.append("jsonpath", this.myFile);
+        axios
+          .post('data/jsonpath', data)
+          .then(response => {
+            this.jsonpath = response.data;
+            this.path_time = 0;
+            this.$refs.myMap.displayJsonPath(this.jsonpath);
+          })
+          .catch(err => {
+            console.log(err);
+          });
+      },
+      updateJsonPathTime() {
+        this.$refs.myMap.updateJsonPathMarker(this.jsonpath, this.path_time)
       }
     },
     mounted() {
@@ -370,3 +418,21 @@
     }
   }
 </script>
+
+<style scoped>
+
+  .my-input input[type=file] {
+    position: absolute;
+    top: 0;
+    right: 0;
+    min-width: 100%;
+    min-height: 100%;
+    text-align: right;
+    filter: alpha(opacity=0);
+    opacity: 0;
+    outline: none;
+    cursor: inherit;
+    display: block;
+  }
+
+</style>
